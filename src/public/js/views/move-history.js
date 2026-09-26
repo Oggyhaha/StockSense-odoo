@@ -30,7 +30,7 @@ const MoveHistoryView = {
                 <div class="filter-bar" style="margin:0; flex-wrap:wrap;">
                     <div class="search-input-wrapper" style="min-width: 240px; flex:1;">
                         <span class="search-icon-inside">${Icons.search}</span>
-                        <input type="text id="mh-search-input" class="form-control" placeholder="Search by reference, product, SKU, reason..." value="${this.filters.search}">
+                        <input type="text" id="mh-search-input" class="form-control" placeholder="Search by reference, product, SKU, reason..." value="${this.filters.search}">
                     </div>
 
                     <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
