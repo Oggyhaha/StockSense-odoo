@@ -10,27 +10,46 @@ async function ensureSeeded() {
     try {
         const orgCount = db.getOne(`SELECT COUNT(*) as count FROM organizations`).count;
         if (orgCount === 0) {
-            console.log('📦 Database empty — auto-seeding demo data...');
+            console.log('\n📦 Database empty — auto-seeding demo data...');
             seedDatabase();
-            console.log('✅ Auto-seed complete');
+            console.log('✅ Auto-seed complete\n');
         }
     } catch (e) {
-        // Table might not exist yet (first run), seed will handle it
-        console.log('📦 First run detected — seeding database...');
+        console.log('\n📦 First run detected — seeding database...');
         seedDatabase();
-        console.log('✅ Seed complete');
+        console.log('✅ Seed complete\n');
     }
 }
 
 ensureSeeded().then(() => {
     const server = app.listen(PORT, () => {
-        console.log(`====================================================`);
-        console.log(`  StockSense Inventory Management System is LIVE!   `);
-        console.log(`  Environment: ${config.env}                       `);
-        console.log(`  URL:         http://localhost:${PORT}             `);
-        console.log(`  API Base:    http://localhost:${PORT}/api/v1      `);
-        console.log(`  Database:    SQLite WAL mode (ACID compliant)     `);
-        console.log(`====================================================`);
+        console.log('\n╔══════════════════════════════════════════════════════════╗');
+        console.log('║  StockSense Inventory Management System is LIVE!          ║');
+        console.log('╠══════════════════════════════════════════════════════════╣');
+        console.log(`║  Environment: ${config.env.padEnd(45)} ║`);
+        console.log(`║  Frontend:    http://localhost:${PORT}                         ║`);
+        console.log(`║  API Base:    http://localhost:${PORT}/api/v1                  ║`);
+        console.log(`║  Health:      http://localhost:${PORT}/api/health                ║`);
+        console.log(`║  Database:    SQLite WAL mode (ACID compliant)              ║`);
+        console.log('╠══════════════════════════════════════════════════════════╣');
+        console.log('║  Demo Accounts (1-click login on page):                     ║');
+        console.log('║  👑 Admin    │ admin@stocksense.io    │ Password123!        ║');
+        console.log('║  📦 Manager  │ manager@stocksense.io  │ Password123!        ║');
+        console.log('║  👷 Staff    │ staff@stocksense.io    │ Password123!        ║');
+        console.log('║  👁️ Viewer   │ viewer@stocksense.io   │ Password123!        ║');
+        console.log('╠══════════════════════════════════════════════════════════╣');
+        console.log('║  Press Ctrl+C to stop the server                            ║');
+        console.log('╚══════════════════════════════════════════════════════════╝\n');
+        console.log('📋 Request logs will appear below:\n');
+    });
+
+    // Graceful shutdown
+    process.on('SIGINT', () => {
+        console.log('\n🛑 Shutting down gracefully...');
+        server.close(() => {
+            console.log('✅ Server closed');
+            process.exit(0);
+        });
     });
 
     module.exports = server;
