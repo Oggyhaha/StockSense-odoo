@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+
+# Package lock (keep package.json only)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Database
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs (if any)
+dist/
+build/
+*.tsbuildinfo
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated
+ehthumbs.db
+Desktop.ini
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Test
+*.lcov
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Backup files
+*.bak
+*.backup
+
+# Generated files
+*.generated.ts
