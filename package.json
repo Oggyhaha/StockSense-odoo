@@ -7,7 +7,9 @@
     "start": "node src/server/server.js",
     "dev": "node --watch src/server/server.js",
     "seed": "node src/server/database/seed.js",
-    "test": "node tests/run-all-tests.js"
+    "test": "node tests/run-all-tests.js",
+    "docker:build": "docker build -t stocksense .",
+    "docker:run": "docker run -p 3000:3000 -v stocksense-data:/app/data stocksense"
   },
   "keywords": [],
   "author": "",
