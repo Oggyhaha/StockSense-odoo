@@ -5,7 +5,7 @@
 [![SQLite](https://img.shields.io/badge/SQLite-3.45+-blue.svg)](https://sqlite.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> A production-grade, modular Inventory Management System built for hackathon submission. Replaces manual registers, Excel sheets, and fragmented tracking with a centralized, real-time, auditable platform for multi-warehouse stock operations.
+> A production-grade, modular Inventory Management System. Replaces manual registers, Excel sheets, and fragmented tracking with a centralized, real-time, auditable platform for multi-warehouse stock operations.
 
 ---
 
@@ -359,7 +359,6 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
-- Built for hackathon submission — **StockSense Problem Statement**
 - Design inspired by modern dark-theme dashboards
 - Icons: Custom SVG set (zero dependencies)
 - Fonts: Plus Jakarta Sans, JetBrains Mono (Google Fonts)
@@ -374,4 +373,4 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-> **Built with ❤️ for the hackathon** — StockSense team
+> **Built with ❤️** — StockSense team

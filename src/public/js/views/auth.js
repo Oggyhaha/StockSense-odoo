@@ -235,7 +235,7 @@ const AuthView = {
                     <div id="otp-demo-banner" style="padding:0.75rem; background:var(--primary-light); border:1px solid var(--primary-border); border-radius:var(--radius-md); margin-bottom:1rem;">
                         <div style="font-size:0.75rem; font-weight:700; color:var(--primary-hover);">🔐 Instant Demo OTP Code Generated:</div>
                         <div id="otp-display-code" style="font-size:1.5rem; font-weight:800; letter-spacing:0.2em; color:white; font-family:var(--font-mono); margin:0.35rem 0;"></div>
-                        <div style="font-size:0.7rem; color:var(--text-secondary);">In production, this is emailed via SMTP. For hackathon evaluation, it is revealed here for immediate testing!</div>
+                        <div style="font-size:0.7rem; color:var(--text-secondary);">In development mode, OTP is shown here for testing. In production, this is emailed via SMTP.</div>
                     </div>
 
                     <div class="form-group">

@@ -189,7 +189,7 @@ class AuthService {
 
         return {
             message: 'OTP sent successfully. Valid for 10 minutes.',
-            // Return otp directly in development/demo mode to facilitate instant hackathon testing
+            // Return otp directly in development mode to facilitate instant testing
             demoOtp: otp,
             email: cleanEmail
         };
