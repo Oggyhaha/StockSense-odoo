@@ -1,0 +1,75 @@
+/* StockSense Design System - Tokens and Palette */
+:root {
+    /* Color Palette - HSL Tailored Dark Theme */
+    --bg-base: hsl(222, 47%, 9%);
+    --bg-surface: hsl(222, 44%, 13%);
+    --bg-surface-elevated: hsl(222, 40%, 17%);
+    --bg-surface-hover: hsl(222, 38%, 21%);
+    --bg-input: hsl(222, 45%, 11%);
+    --bg-glass: hsla(222, 44%, 13%, 0.85);
+
+    /* Accent & Brand Colors */
+    --primary: hsl(217, 91%, 60%);
+    --primary-hover: hsl(217, 95%, 68%);
+    --primary-active: hsl(217, 90%, 52%);
+    --primary-light: hsla(217, 91%, 60%, 0.15);
+    --primary-border: hsla(217, 91%, 60%, 0.35);
+
+    --secondary: hsl(250, 84%, 67%);
+    --secondary-light: hsla(250, 84%, 67%, 0.15);
+
+    /* Semantic Status Colors */
+    --success: hsl(152, 69%, 45%);
+    --success-light: hsla(152, 69%, 45%, 0.15);
+    --success-border: hsla(152, 69%, 45%, 0.3);
+
+    --warning: hsl(38, 92%, 50%);
+    --warning-light: hsla(38, 92%, 50%, 0.15);
+    --warning-border: hsla(38, 92%, 50%, 0.3);
+
+    --danger: hsl(351, 85%, 60%);
+    --danger-light: hsla(351, 85%, 60%, 0.15);
+    --danger-border: hsla(351, 85%, 60%, 0.3);
+
+    --info: hsl(199, 89%, 48%);
+    --info-light: hsla(199, 89%, 48%, 0.15);
+
+    /* Text Colors */
+    --text-primary: hsl(210, 40%, 98%);
+    --text-secondary: hsl(215, 20%, 75%);
+    --text-muted: hsl(215, 16%, 52%);
+    --text-disabled: hsl(215, 16%, 36%);
+
+    /* Borders & Dividers */
+    --border-subtle: hsla(217, 33%, 25%, 0.5);
+    --border-strong: hsla(217, 33%, 35%, 0.7);
+    --border-focus: hsl(217, 91%, 60%);
+
+    /* Shadows & Elevation */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+    --shadow-glow: 0 0 24px hsla(217, 91%, 60%, 0.25);
+    --shadow-success-glow: 0 0 20px hsla(152, 69%, 45%, 0.25);
+
+    /* Typography */
+    --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+    /* Sizing & Radii */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+
+    /* Spacing */
+    --sidebar-width: 260px;
+    --topbar-height: 64px;
+    --content-max-width: 1440px;
+
+    /* Transitions */
+    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

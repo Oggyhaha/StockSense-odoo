@@ -1,0 +1,274 @@
+/* StockSense View Specific Layouts & Aesthetics */
+
+/* Auth View */
+.auth-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    background: radial-gradient(circle at top right, hsla(217, 91%, 60%, 0.12), transparent 45%),
+                radial-gradient(circle at bottom left, hsla(250, 84%, 67%, 0.1), transparent 45%),
+                var(--bg-base);
+}
+
+.auth-hero-side {
+    flex: 1.1;
+    background: linear-gradient(135deg, hsla(222, 44%, 13%, 0.8), hsla(222, 47%, 9%, 0.95)),
+                radial-gradient(circle at center, hsla(217, 91%, 60%, 0.15), transparent 70%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3.5rem;
+    border-right: 1px solid var(--border-subtle);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-form-side {
+    flex: 0.9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2.5rem;
+    overflow-y: auto;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2.25rem;
+}
+
+.auth-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.auth-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.75rem;
+}
+
+.demo-credentials-box {
+    margin-top: 1.75rem;
+    padding: 1.15rem;
+    background: hsla(217, 91%, 60%, 0.08);
+    border: 1px dashed var(--primary-border);
+    border-radius: var(--radius-md);
+}
+
+.demo-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--primary-hover);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.demo-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.demo-btn {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    text-align: left;
+    transition: all var(--transition-fast);
+}
+.demo-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+/* Dashboard Views */
+.dashboard-charts-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.activity-feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast);
+}
+
+.activity-item:hover {
+    transform: translateX(4px);
+    border-color: var(--border-strong);
+}
+
+.activity-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.activity-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.activity-badge-receipt { background: var(--success-light); color: var(--success); }
+.activity-badge-delivery { background: var(--danger-light); color: var(--danger); }
+.activity-badge-transfer { background: var(--warning-light); color: var(--warning); }
+.activity-badge-adj { background: var(--info-light); color: var(--info); }
+
+/* Operations Workflow Stepper */
+.workflow-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+    position: relative;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.step-item.active {
+    color: var(--primary-hover);
+}
+.step-item.completed {
+    color: var(--success);
+}
+
+.step-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.75rem;
+}
+.step-item.active .step-circle {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+.step-item.completed .step-circle {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
+/* Difference indicator in Stock Adjustments */
+.diff-tag {
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+}
+.diff-tag-positive {
+    background: var(--success-light);
+    color: var(--success);
+}
+.diff-tag-negative {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+.diff-tag-zero {
+    background: hsla(215, 16%, 52%, 0.15);
+    color: var(--text-muted);
+}
+
+/* Line items table editor in modals */
+.line-items-table {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.line-items-table th {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+.line-items-table td {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Tree view for Warehouses & Locations */
+.tree-node {
+    margin-bottom: 0.75rem;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+.tree-locations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--primary-border);
+}
+.location-pill {
+    padding: 0.6rem 0.85rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+@media (max-width: 900px) {
+    .auth-hero-side {
+        display: none;
+    }
+    .auth-form-side {
+        flex: 1;
+    }
+    .dashboard-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
