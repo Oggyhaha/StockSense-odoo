@@ -469,7 +469,7 @@ function seedDatabase() {
         `, [uuid(), rec3Id, prodSheetMetal]);
 
         // Seed Sample Delivery Orders (Outgoing Goods)
-        // Delivery 1: DONE
+// Delivery 1: DONE
         const del1Id = uuid();
         db.execute(`
             INSERT OR REPLACE INTO deliveries
@@ -478,22 +478,53 @@ function seedDatabase() {
         `, [del1Id, orgId, whCentral, managerUserId]);
 
         db.execute(`
-            INSERT OR REPLACE INTO delivery_items (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity)
-            VALUES (?, ?, ?, 10.0, 10.0, 10.0, 10.0)
+            INSERT OR REPLACE INTO delivery_items (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity, notes)
+            VALUES (?, ?, ?, 10.0, 10.0, 10.0, 10.0, 'Dispatched to customer')
         `, [uuid(), del1Id, prodChair]);
 
-        // Delivery 2: PICKING
+        // Delivery 2: WAITING (mapped from old PICKING)
         const del2Id = uuid();
         db.execute(`
             INSERT OR REPLACE INTO deliveries
             (id, organization_id, delivery_number, customer_name, warehouse_id, source_location_id, scheduled_date, reference_number, notes, status, created_by)
-            VALUES (?, ?, 'DEL-2026-0002', 'Vanguard Bio Labs', ?, 'loc-c-rack-a1', '2026-09-26', 'SO-44319', 'Staff is currently picking items from Rack A01', 'PICKING', ?)
+            VALUES (?, ?, 'DEL-2026-0002', 'Vanguard Bio Labs', ?, 'loc-c-rack-a1', '2026-09-26', 'SO-44319', 'Order placed, waiting for stock allocation', 'WAITING', ?)
         `, [del2Id, orgId, whCentral, staffUserId]);
 
         db.execute(`
-            INSERT OR REPLACE INTO delivery_items (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity)
-            VALUES (?, ?, ?, 25.0, 15.0, 0.0, 0.0)
+            INSERT OR REPLACE INTO delivery_items (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity, notes)
+            VALUES (?, ?, ?, 25.0, 0.0, 0.0, 0.0, 'Order placed, waiting for stock allocation')
         `, [uuid(), del2Id, prodBearings]);
+
+        // Delivery 3: READY - has sufficient stock
+        const del3Id = uuid();
+        db.execute(`
+            INSERT OR REPLACE INTO deliveries
+            (id, organization_id, delivery_number, customer_name, warehouse_id, source_location_id, scheduled_date, reference_number, notes, status, created_by)
+            VALUES (?, ?, 'DEL-2026-0003', 'Apex Manufacturing', ?, 'loc-c-rack-a1', '2026-09-27', 'SO-44420', 'All items available, ready for dispatch', 'READY', ?)
+        `, [del3Id, orgId, whCentral, managerUserId]);
+
+        db.execute(`
+            INSERT OR REPLACE INTO delivery_items (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity, notes)
+            VALUES (?, ?, ?, 15.0, 15.0, 15.0, 0.0, 'All items picked and packed, ready for carrier pickup')
+        `, [uuid(), del3Id, prodBearings]);
+
+        // Delivery 4: DRAFT - has some out-of-stock items
+        const del4Id = uuid();
+        db.execute(`
+            INSERT OR REPLACE INTO deliveries
+            (id, organization_id, delivery_number, customer_name, warehouse_id, source_location_id, scheduled_date, reference_number, notes, status, created_by)
+            VALUES (?, ?, 'DEL-2026-0004', 'Nordic Industries', ?, 'loc-c-rack-a1', '2026-09-28', 'SO-44510', 'Order includes out-of-stock items', 'DRAFT', ?)
+        `, [del4Id, orgId, whCentral, staffUserId]);
+
+        db.execute(`
+            INSERT OR REPLACE INTO delivery_items (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity, notes)
+            VALUES (?, ?, ?, 5.0, 0.0, 0.0, 0.0, 'Stepper motors low in stock')
+        `, [uuid(), del4Id, prodMotor]);
+
+        db.execute(`
+            INSERT OR REPLACE INTO delivery_items (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity, notes)
+            VALUES (?, ?, ?, 3.0, 0.0, 0.0, 0.0, 'Standing desks below reorder point')
+        `, [uuid(), del4Id, prodDesk]);
 
         // Seed Sample Internal Transfers
         // Transfer 1: DONE

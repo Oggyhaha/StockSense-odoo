@@ -127,8 +127,7 @@ const API = {
     },
     getDelivery: (id) => API.request(`/deliveries/${id}`),
     createDelivery: (data) => API.request('/deliveries', { method: 'POST', body: data }),
-    pickDelivery: (id, items) => API.request(`/deliveries/${id}/pick`, { method: 'POST', body: { items } }),
-    packDelivery: (id, items) => API.request(`/deliveries/${id}/pack`, { method: 'POST', body: { items } }),
+    updateDeliveryStatus: (id, status) => API.request(`/deliveries/${id}/status`, { method: 'PATCH', body: { status } }),
     validateDelivery: (id) => API.request(`/deliveries/${id}/validate`, { method: 'POST' }),
     cancelDelivery: (id) => API.request(`/deliveries/${id}/cancel`, { method: 'POST' }),
 

@@ -42,33 +42,22 @@ router.post('/', requirePermission('delivery.create'), (req, res, next) => {
     }
 });
 
-// Pick items (Staff updates picked quantities)
-router.post('/:id/pick', requirePermission('delivery.create'), (req, res, next) => {
+// Update delivery status (Draft -> Waiting -> Ready)
+router.patch('/:id/status', requirePermission('delivery.create'), (req, res, next) => {
     try {
-        const delivery = deliveriesService.pickItems(req.user.organization_id, req.params.id, req.body.items, req.user.id);
-        recordAuditLog(req, 'DELIVERY_PICKED', 'delivery', delivery.id, `Picking progressed on ${delivery.delivery_number}`);
+        const delivery = deliveriesService.updateDeliveryStatus(req.user.organization_id, req.params.id, req.body.status, req.user.id);
+        recordAuditLog(req, 'DELIVERY_STATUS_UPDATED', 'delivery', delivery.id, `Updated status of ${delivery.delivery_number} to ${delivery.status}`);
         res.json({ success: true, data: delivery });
     } catch (err) {
         next(err);
     }
 });
 
-// Pack items
-router.post('/:id/pack', requirePermission('delivery.create'), (req, res, next) => {
-    try {
-        const delivery = deliveriesService.packItems(req.user.organization_id, req.params.id, req.body.items, req.user.id);
-        recordAuditLog(req, 'DELIVERY_PACKED', 'delivery', delivery.id, `Packing confirmed on ${delivery.delivery_number}`);
-        res.json({ success: true, data: delivery });
-    } catch (err) {
-        next(err);
-    }
-});
-
-// Validate delivery (Deducts stock & writes ledger)
+// Validate delivery (Deducts stock & writes ledger) - from READY to DONE
 router.post('/:id/validate', requirePermission('delivery.validate'), (req, res, next) => {
     try {
         const delivery = deliveriesService.validateDelivery(req.user.organization_id, req.params.id, req.user.id);
-        recordAuditLog(req, 'DELIVERY_VALIDATED', 'delivery', delivery.id, `Shipped delivery order ${delivery.delivery_number}; stock decremented`);
+        recordAuditLog(req, 'DELIVERY_VALIDATED', 'delivery', delivery.id, `Dispatched delivery order ${delivery.delivery_number}; stock decremented`);
         res.json({ success: true, data: delivery });
     } catch (err) {
         next(err);

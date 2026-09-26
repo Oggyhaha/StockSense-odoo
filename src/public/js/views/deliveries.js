@@ -1,17 +1,18 @@
 /**
- * Deliveries View (Outgoing Customer Shipments, Picking, Packing, & Stock Deduction)
+ * Deliveries View (Outgoing Customer Shipments - Draft -> Waiting -> Ready -> Dispatch)
  */
 const DeliveriesView = {
     status: '',
     warehouseId: '',
     search: '',
+    viewMode: 'list', // 'list' or 'kanban'
 
     async render(container) {
         container.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
                 <div>
                     <h1 style="font-size:1.6rem; font-weight:800; margin-bottom:0.25rem;">Delivery Orders (Outbound)</h1>
-                    <p style="font-size:0.85rem; color:var(--text-secondary);">Fulfill customer orders, execute picking and packing workflows, and decrement inventory upon dispatch.</p>
+                    <p style="font-size:0.85rem; color:var(--text-secondary);">Manage customer orders through Draft → Waiting → Ready → Dispatch workflow with stock validation.</p>
                 </div>
 
                 <button class="btn btn-primary" id="btn-create-delivery">
@@ -35,11 +36,17 @@ const DeliveriesView = {
                         <select id="del-status-select" class="form-control" style="width:160px;">
                             <option value="">All Statuses</option>
                             <option value="DRAFT">Draft</option>
-                            <option value="PICKING">Picking</option>
-                            <option value="PACKED">Packed</option>
-                            <option value="DONE">Done (Shipped)</option>
+                            <option value="WAITING">Waiting</option>
+                            <option value="READY">Ready</option>
+                            <option value="DONE">Done (Dispatched)</option>
                             <option value="CANCELED">Canceled</option>
                         </select>
+
+                        <!-- View Toggle -->
+                        <div class="view-toggle" style="margin-left:auto;">
+                            <button class="view-btn ${this.viewMode === 'list' ? 'active' : ''}" data-view="list" title="List View">${Icons.list}</button>
+                            <button class="view-btn ${this.viewMode === 'kanban' ? 'active' : ''}" data-view="kanban" title="Kanban View">${Icons.kanban}</button>
+                        </div>
 
                         <button class="btn btn-secondary" id="del-btn-refresh">
                             ${Icons.refresh}
@@ -48,25 +55,60 @@ const DeliveriesView = {
                 </div>
             </div>
 
-            <!-- Deliveries Table -->
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Delivery Number</th>
-                            <th>Customer / Recipient</th>
-                            <th>Dispatch Bay</th>
-                            <th>Status</th>
-                            <th>Ordered Qty</th>
-                            <th>Picked / Packed</th>
-                            <th>Scheduled Date</th>
-                            <th style="text-align:right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="deliveries-table-body">
-                        <tr><td colspan="8" style="text-align:center; padding:2rem;">Loading deliveries...</td></tr>
-                    </tbody>
+            <!-- List View -->
+            <div id="del-list-view" style="${this.viewMode === 'list' ? '' : 'display:none;'}">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Delivery Number</th>
+                                <th>Customer / Recipient</th>
+                                <th>Dispatch Bay</th>
+                                <th>Status</th>
+                                <th>Ordered Qty</th>
+                                <th>Scheduled Date</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deliveries-table-body">
+                            <tr><td colspan="7" style="text-align:center; padding:2rem;">Loading deliveries...</td></tr>
+                        </tbody>
+                    </table>
                 </table>
+            </div>
+
+            <!-- Kanban View -->
+            <div id="del-kanban-view" style="${this.viewMode === 'kanban' ? '' : 'display:none;'}">
+                <div class="kanban-board" style="display:flex; gap:1rem; overflow-x:auto; padding:0.5rem 0;">
+                    <div class="kanban-column" data-status="DRAFT">
+                        <div class="kanban-column-header" style="background:var(--bg-surface-hover); border:1px solid var(--border-subtle); border-radius:var(--radius-md) var(--radius-md) 0 0; padding:0.75rem 1rem; font-weight:600; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+                            <span>Draft</span>
+                            <span class="badge badge-draft" id="kanban-count-draft">0</span>
+                        </div>
+                        <div class="kanban-cards" id="kanban-draft" style="min-height:300px; padding:0.5rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);"></div>
+                    </div>
+                    <div class="kanban-column" data-status="WAITING">
+                        <div class="kanban-column-header" style="background:var(--warning-light); border:1px solid var(--warning-border); border-radius:var(--radius-md) var(--radius-md) 0 0; padding:0.75rem 1rem; font-weight:600; color:var(--warning); display:flex; justify-content:space-between; align-items:center;">
+                            <span>Waiting</span>
+                            <span class="badge badge-warning" id="kanban-count-waiting">0</span>
+                        </div>
+                        <div class="kanban-cards" id="kanban-waiting" style="min-height:300px; padding:0.5rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);"></div>
+                    </div>
+                    <div class="kanban-column" data-status="READY">
+                        <div class="kanban-column-header" style="background:var(--success-light); border:1px solid var(--success-border); border-radius:var(--radius-md) var(--radius-md) 0 0; padding:0.75rem 1rem; font-weight:600; color:var(--success); display:flex; justify-content:space-between; align-items:center;">
+                            <span>Ready</span>
+                            <span class="badge badge-success" id="kanban-count-ready">0</span>
+                        </div>
+                        <div class="kanban-cards" id="kanban-ready" style="min-height:300px; padding:0.5rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);"></div>
+                    </div>
+                    <div class="kanban-column" data-status="DONE">
+                        <div class="kanban-column-header" style="background:var(--info-light); border:1px solid var(--info); border-radius:var(--radius-md) var(--radius-md) 0 0; padding:0.75rem 1rem; font-weight:600; color:var(--info); display:flex; justify-content:space-between; align-items:center;">
+                            <span>Dispatched</span>
+                            <span class="badge badge-info" id="kanban-count-done">0</span>
+                        </div>
+                        <div class="kanban-cards" id="kanban-done" style="min-height:300px; padding:0.5rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);"></div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -90,8 +132,36 @@ const DeliveriesView = {
             this.loadDeliveries();
         };
 
+        // View toggle
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                this.viewMode = e.currentTarget.dataset.view;
+                this.renderDeliveriesView();
+            };
+        });
+
         document.getElementById('del-btn-refresh').onclick = () => this.loadDeliveries();
         document.getElementById('btn-create-delivery').onclick = () => this.showCreateDeliveryModal();
+    },
+
+    renderDeliveriesView() {
+        const listView = document.getElementById('del-list-view');
+        const kanbanView = document.getElementById('del-kanban-view');
+        const listBtn = document.querySelector('.view-btn[data-view="list"]');
+        const kanbanBtn = document.querySelector('.view-btn[data-view="kanban"]');
+
+        if (this.viewMode === 'list') {
+            listView.style.display = '';
+            document.getElementById('del-kanban-view').style.display = 'none';
+            listBtn.classList.add('active');
+            kanbanBtn.classList.remove('active');
+        } else {
+            listView.style.display = 'none';
+            document.getElementById('del-kanban-view').style.display = '';
+            listBtn.classList.remove('active');
+            kanbanBtn.classList.add('active');
+            this.loadDeliveries(); // Re-render kanban
+        }
     },
 
     async loadWarehousesFilter() {
@@ -111,7 +181,6 @@ const DeliveriesView = {
     },
 
     async loadDeliveries() {
-        const tbody = document.getElementById('deliveries-table-body');
         try {
             const res = await API.getDeliveries({
                 search: this.search,
@@ -120,50 +189,128 @@ const DeliveriesView = {
                 limit: 100
             });
 
-            if (!res.items || res.items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2.5rem; color:var(--text-muted);">No delivery orders found.</td></tr>`;
-                return;
+            if (this.viewMode === 'list') {
+                this.renderListView(res.items || []);
+            } else {
+                this.renderKanbanView(res.items || []);
             }
-
-            tbody.innerHTML = res.items.map(d => {
-                const badgeClass = `badge-${d.status.toLowerCase().replace('_', '-')}`;
-                return `
-                    <tr style="cursor:pointer;" onclick="DeliveriesView.showDeliveryDetailModal('${d.id}')">
-                        <td>
-                            <strong style="color:var(--primary-hover); font-family:var(--font-mono); font-size:0.95rem;">${d.delivery_number}</strong>
-                            ${d.reference_number ? `<div style="font-size:0.7rem; color:var(--text-muted);">SO: ${d.reference_number}</div>` : ''}
-                        </td>
-                        <td>
-                            <div style="font-weight:600; color:var(--text-primary);">${d.customer_name || 'Customer Shipment'}</div>
-                            <div style="font-size:0.7rem; color:var(--text-muted);">${d.item_count} line item(s)</div>
-                        </td>
-                        <td>
-                            <div style="font-weight:600; color:var(--text-primary);">${d.warehouse_name}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">${d.location_name}</div>
-                        </td>
-                        <td>
-                            <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${d.status}</span>
-                        </td>
-                        <td>
-                            <strong style="font-size:1rem; color:white;">${d.total_ordered_quantity}</strong>
-                        </td>
-                        <td>
-                            <span style="font-size:0.85rem; color:var(--warning); font-weight:600;">${d.total_picked_quantity}</span>
-                            <span style="font-size:0.75rem; color:var(--text-muted);"> / ${d.total_ordered_quantity}</span>
-                        </td>
-                        <td style="font-size:0.8rem; color:var(--text-muted);">
-                            ${d.shipped_date ? 'Shipped: ' + new Date(d.shipped_date).toLocaleDateString() : (d.scheduled_date ? 'Sched: ' + new Date(d.scheduled_date).toLocaleDateString() : '-')}
-                        </td>
-                        <td style="text-align:right;" onclick="event.stopPropagation()">
-                            <button class="btn btn-secondary btn-sm" onclick="DeliveriesView.showDeliveryDetailModal('${d.id}')">
-                                Pick / Ship
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--danger);">Error loading delivery orders: ${err.message}</td></tr>`;
+            if (this.viewMode === 'list') {
+                document.getElementById('deliveries-table-body').innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--danger);">Error loading delivery orders: ${err.message}</td></tr>`;
+            }
+        }
+    },
+
+    renderListView(items = []) {
+        const tbody = document.getElementById('deliveries-table-body');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2.5rem; color:var(--text-muted);">No delivery orders found.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = items.map(d => {
+            const badgeClass = `badge-${d.status.toLowerCase().replace('_', '-')}`;
+            return `
+                <tr style="cursor:pointer;" onclick="DeliveriesView.showDeliveryDetailModal('${d.id}')">
+                    <td>
+                        <strong style="color:var(--primary-hover); font-family:var(--font-mono); font-size:0.95rem;">${d.delivery_number}</strong>
+                        ${d.reference_number ? `<div style="font-size:0.7rem; color:var(--text-muted);">SO: ${d.reference_number}</div>` : ''}
+                    </td>
+                    <td>
+                        <div style="font-weight:600; color:var(--text-primary);">${d.customer_name || 'Customer Shipment'}</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">${d.item_count} line item(s)</div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600; color:var(--text-primary);">${d.warehouse_name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">${d.location_name}</div>
+                    </td>
+                    <td>
+                        <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${d.status}</span>
+                    </td>
+                    <td>
+                        <strong style="font-size:1rem; color:white;">${d.total_ordered_quantity}</strong>
+                    </td>
+                    <td style="font-size:0.8rem; color:var(--text-muted);">
+                        ${d.shipped_date ? 'Dispatched: ' + new Date(d.shipped_date).toLocaleDateString() : (d.scheduled_date ? 'Sched: ' + new Date(d.scheduled_date).toLocaleDateString() : '-')}
+                    </td>
+                    <td style="text-align:right;" onclick="event.stopPropagation()">
+                        <button class="btn btn-secondary btn-sm" onclick="DeliveriesView.showDeliveryDetailModal('${d.id}')">
+                            View / Process
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    renderKanbanView(items = []) {
+        const columns = {
+            DRAFT: document.getElementById('kanban-draft'),
+            WAITING: document.getElementById('kanban-waiting'),
+            READY: document.getElementById('kanban-ready'),
+            DONE: document.getElementById('kanban-done')
+        };
+
+        // Clear columns
+        Object.values(columns).forEach(col => col.innerHTML = '');
+
+        // Count badges
+        const counts = { DRAFT: 0, WAITING: 0, READY: 0, DONE: 0 };
+
+        if (!items || items.length === 0) {
+            Object.values(columns).forEach(col => {
+                col.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem;">No delivery orders</div>';
+            });
+            document.getElementById('kanban-count-draft').textContent = 0;
+            document.getElementById('kanban-count-waiting').textContent = 0;
+            document.getElementById('kanban-count-ready').textContent = 0;
+            document.getElementById('kanban-count-done').textContent = 0;
+            return;
+        }
+
+        items.forEach(d => {
+            const status = d.status;
+            if (columns[status]) {
+                counts[status]++;
+                const card = document.createElement('div');
+                card.className = 'kanban-card';
+                card.style.cssText = 'background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1rem; margin-bottom:0.5rem; cursor:pointer; transition:transform var(--transition-fast), box-shadow var(--transition-fast);';
+                card.onmouseover = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = 'var(--shadow-md)'; };
+                card.onmouseout = () => { card.style.transform = ''; card.style.boxShadow = ''; };
+                card.onclick = () => DeliveriesView.showDeliveryDetailModal(d.id);
+
+                // Check for insufficient stock
+                const hasInsufficientStock = d.items && d.items.some(item => item.current_available_stock < item.ordered_quantity);
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+                        <strong style="color:var(--primary-hover); font-family:var(--font-mono); font-size:0.9rem;">${d.delivery_number}</strong>
+                        <span class="badge badge-${d.status.toLowerCase().replace('_', '-')}">${d.status}</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.5rem;">${d.customer_name || 'Customer Shipment'}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${d.warehouse_name} / ${d.location_name}</div>
+                    <div style="margin-top:0.75rem; padding-top:0.5rem; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${d.item_count} items</span>
+                        <strong style="color:var(--success);">Qty: ${d.total_ordered_quantity}</strong>
+                    </div>
+                    ${hasInsufficientStock ? `<div style="margin-top:0.5rem; padding:0.5rem; background:var(--danger-light); border:1px solid var(--danger-border); border-radius:var(--radius-sm); font-size:0.7rem; color:var(--danger);">⚠ Some items have insufficient stock</div>` : ''}
+                `;
+                columns[status].appendChild(card);
+            });
+
+            // Update count badges
+            document.getElementById('kanban-count-draft').textContent = counts.DRAFT;
+            document.getElementById('kanban-count-waiting').textContent = counts.WAITING;
+            document.getElementById('kanban-count-ready').textContent = counts.READY;
+            document.getElementById('kanban-count-done').textContent = counts.DONE;
+
+            // Empty columns
+            ['DRAFT', 'WAITING', 'READY', 'DONE'].forEach(s => {
+                if (counts[s] === 0) {
+                    document.getElementById(`kanban-${s.toLowerCase()}`).innerHTML = 
+                        '<div style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem;">No delivery orders</div>';
+                }
+            });
         }
     },
 
@@ -179,24 +326,24 @@ const DeliveriesView = {
                 content: `
                     <!-- Stepper -->
                     <div class="workflow-stepper">
-                        <div class="step-item ${['DRAFT', 'PICKING', 'PACKED', 'DONE'].includes(d.status) ? 'active' : ''} ${['PICKING', 'PACKED', 'DONE'].includes(d.status) ? 'completed' : ''}">
+                        <div class="step-item ${['DRAFT', 'WAITING', 'READY', 'DONE'].includes(d.status) ? 'active' : ''} ${['WAITING', 'READY', 'DONE'].includes(d.status) ? 'completed' : ''}">
                             <div class="step-circle">1</div>
-                            <span>Order Created</span>
+                            <span>Draft</span>
                         </div>
                         <div style="flex:1; height:2px; background:var(--border-subtle); margin:0 0.5rem;"></div>
-                        <div class="step-item ${['PICKING', 'PACKED', 'DONE'].includes(d.status) ? 'active' : ''} ${['PACKED', 'DONE'].includes(d.status) ? 'completed' : ''}">
+                        <div class="step-item ${['WAITING', 'READY', 'DONE'].includes(d.status) ? 'active' : ''} ${['READY', 'DONE'].includes(d.status) ? 'completed' : ''}">
                             <div class="step-circle">2</div>
-                            <span>Picking Stock</span>
+                            <span>Waiting</span>
                         </div>
                         <div style="flex:1; height:2px; background:var(--border-subtle); margin:0 0.5rem;"></div>
-                        <div class="step-item ${['PACKED', 'DONE'].includes(d.status) ? 'active' : ''} ${isDone ? 'completed' : ''}">
+                        <div class="step-item ${['READY', 'DONE'].includes(d.status) ? 'active' : ''} ${isDone ? 'completed' : ''}">
                             <div class="step-circle">3</div>
-                            <span>Packed & Staged</span>
+                            <span>Ready</span>
                         </div>
                         <div style="flex:1; height:2px; background:var(--border-subtle); margin:0 0.5rem;"></div>
                         <div class="step-item ${isDone ? 'completed' : ''}">
                             <div class="step-circle">4</div>
-                            <span>Dispatched (Done)</span>
+                            <span>Dispatched</span>
                         </div>
                     </div>
 
@@ -220,33 +367,35 @@ const DeliveriesView = {
                         </div>
                     </div>
 
-                    <h4 style="margin-bottom:0.75rem; font-size:0.95rem;">Items to Pick & Dispatch</h4>
+                    <h4 style="margin-bottom:0.75rem; font-size:0.95rem;">Items to Dispatch</h4>
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>Product Name</th>
                                     <th>Ordered</th>
-                                    <th>Picked</th>
-                                    <th>Packed</th>
                                     <th>Location Available Stock</th>
+                                    <th>Stock Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${d.items.map(item => `
-                                    <tr>
+                                    <tr class="${item.current_available_stock < item.ordered_quantity ? 'out-of-stock-row' : ''}">
                                         <td>
                                             <div style="font-weight:600; color:var(--text-primary);">${item.product_name}</div>
                                             <div style="font-size:0.7rem; color:var(--text-muted); font-family:var(--font-mono);">${item.product_sku}</div>
                                         </td>
                                         <td><strong style="color:white; font-size:1rem;">${item.ordered_quantity} ${item.uom_symbol}</strong></td>
-                                        <td><span style="color:var(--warning); font-weight:700;">${item.picked_quantity} ${item.uom_symbol}</span></td>
-                                        <td><span style="color:var(--info); font-weight:700;">${item.packed_quantity} ${item.uom_symbol}</span></td>
                                         <td>
                                             <strong style="color:${item.current_available_stock >= item.ordered_quantity ? 'var(--success)' : 'var(--danger)'};">
                                                 ${item.current_available_stock} ${item.uom_symbol}
                                             </strong>
-                                            ${item.current_available_stock < item.ordered_quantity ? '<span style="font-size:0.65rem; color:var(--danger); margin-left:0.25rem;">(Low!)</span>' : ''}
+                                        </td>
+                                        <td>
+                                            ${item.current_available_stock >= item.ordered_quantity ? 
+                                                `<span class="badge badge-success">✓ Sufficient</span>` : 
+                                                `<span class="badge badge-danger">⚠ Insufficient</span>`
+                                            }
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -258,7 +407,7 @@ const DeliveriesView = {
                         <div style="padding:0.85rem; background:var(--success-light); border:1px solid var(--success-border); border-radius:var(--radius-md); margin-top:1.25rem; display:flex; align-items:center; gap:0.75rem;">
                             <div style="color:var(--success);">${Icons.check}</div>
                             <div style="font-size:0.85rem; color:white;">
-                                <strong>Order Shipped:</strong> Goods have left the warehouse. Stock balances were decremented and audit log recorded in the stock ledger.
+                                <strong>Order Dispatched:</strong> Goods have left the warehouse. Stock balances were decremented and audit log recorded in the stock ledger.
                             </div>
                         </div>
                     ` : ''}
@@ -268,27 +417,37 @@ const DeliveriesView = {
                     ${!isDone && !isCanceled ? `
                         <button class="btn btn-danger" id="btn-cancel-del">Cancel Order</button>
                         ${d.status === 'DRAFT' ? `
-                            <button class="btn btn-secondary" id="btn-pick-all">
-                                📦 Auto-Pick Items
+                            <button class="btn btn-secondary" id="btn-to-waiting">
+                                ${Icons.arrowRight} Move to Waiting
                             </button>
                         ` : ''}
-                        ${['DRAFT', 'PICKING'].includes(d.status) ? `
-                            <button class="btn btn-secondary" id="btn-pack-all">
-                                🏷️ Pack Items
+                        ${d.status === 'WAITING' ? `
+                            <button class="btn btn-secondary" id="btn-to-ready">
+                                ${Icons.check} Mark Ready (Check Stock)
+                            </button>
+                            <button class="btn btn-secondary" id="btn-back-draft">
+                                ${Icons.arrowLeft} Back to Draft
                             </button>
                         ` : ''}
-                        <button class="btn btn-primary" id="btn-validate-del">
-                            🚚 Validate & Dispatch (Stock -)
-                        </button>
+                        ${d.status === 'READY' ? `
+                            <button class="btn btn-secondary" id="btn-back-waiting">
+                                ${Icons.arrowLeft} Back to Waiting
+                            </button>
+                        ` : ''}
+                        ${d.status === 'READY' ? `
+                            <button class="btn btn-primary" id="btn-validate-del">
+                                🚚 Dispatch & Deduct Stock
+                            </button>
+                        ` : ''}
                     ` : ''}
                 `,
                 onOpen: () => {
-                    const btnPick = document.getElementById('btn-pick-all');
-                    if (btnPick) {
-                        btnPick.onclick = async () => {
+                    const btnToWaiting = document.getElementById('btn-to-waiting');
+                    if (btnToWaiting) {
+                        btnToWaiting.onclick = async () => {
                             try {
-                                await API.pickDelivery(d.id);
-                                Toast.success('All items picked from racks');
+                                await API.updateDeliveryStatus(d.id, 'WAITING');
+                                Toast.success('Delivery moved to Waiting');
                                 Modal.close();
                                 DeliveriesView.showDeliveryDetailModal(d.id);
                             } catch (e) {
@@ -297,12 +456,40 @@ const DeliveriesView = {
                         };
                     }
 
-                    const btnPack = document.getElementById('btn-pack-all');
-                    if (btnPack) {
-                        btnPack.onclick = async () => {
+                    const btnToReady = document.getElementById('btn-to-ready');
+                    if (btnToReady) {
+                        btnToReady.onclick = async () => {
                             try {
-                                await API.packDelivery(d.id);
-                                Toast.success('Items packed and staged for shipping');
+                                await API.updateDeliveryStatus(d.id, 'READY');
+                                Toast.success('Delivery marked Ready - stock validated');
+                                Modal.close();
+                                DeliveriesView.showDeliveryDetailModal(d.id);
+                            } catch (e) {
+                                Toast.error(e.message);
+                            }
+                        };
+                    }
+
+                    const btnBackDraft = document.getElementById('btn-back-draft');
+                    if (btnBackDraft) {
+                        btnBackDraft.onclick = async () => {
+                            try {
+                                await API.updateDeliveryStatus(d.id, 'DRAFT');
+                                Toast.success('Delivery moved back to Draft');
+                                Modal.close();
+                                DeliveriesView.showDeliveryDetailModal(d.id);
+                            } catch (e) {
+                                Toast.error(e.message);
+                            }
+                        };
+                    }
+
+                    const btnBackWaiting = document.getElementById('btn-back-waiting');
+                    if (btnBackWaiting) {
+                        btnBackWaiting.onclick = async () => {
+                            try {
+                                await API.updateDeliveryStatus(d.id, 'WAITING');
+                                Toast.success('Delivery moved back to Waiting');
                                 Modal.close();
                                 DeliveriesView.showDeliveryDetailModal(d.id);
                             } catch (e) {
@@ -314,19 +501,25 @@ const DeliveriesView = {
                     const btnValidate = document.getElementById('btn-validate-del');
                     if (btnValidate) {
                         btnValidate.onclick = async () => {
-                            if (!confirm(`Dispatch delivery order ${d.delivery_number}? This will permanently deduct stock from ${d.location_name} and write immutable ledger entries.`)) return;
+                            const hasInsufficientStock = d.items.some(item => item.current_available_stock < item.ordered_quantity);
+                            let confirmMsg = `Dispatch delivery order ${d.delivery_number}? This will permanently deduct stock from ${d.location_name} and write immutable ledger entries.`;
+                            if (hasInsufficientStock) {
+                                confirmMsg += '\n\n⚠ WARNING: Some items have insufficient stock! This will only proceed if organization allows negative stock.';
+                            }
+                            
+                            if (!confirm(confirmMsg)) return;
 
                             try {
                                 btnValidate.disabled = true;
-                                btnValidate.innerHTML = 'Fulfilling & Deducting Stock...';
+                                btnValidate.innerHTML = 'Dispatching & Deducting Stock...';
                                 await API.validateDelivery(d.id);
-                                Toast.success(`Delivery ${d.delivery_number} shipped! Stock decremented.`);
+                                Toast.success(`Delivery ${d.delivery_number} dispatched! Stock decremented.`);
                                 Modal.close();
                                 DeliveriesView.loadDeliveries();
                             } catch (err) {
                                 Toast.error(err.message);
                                 btnValidate.disabled = false;
-                                btnValidate.innerHTML = '🚚 Validate & Dispatch (Stock -)';
+                                btnValidate.innerHTML = '🚚 Dispatch & Deduct Stock';
                             }
                         };
                     }

@@ -35,8 +35,7 @@ class DeliveriesService {
                 l.id as location_id, l.name as location_name,
                 u.name as created_by_name,
                 COUNT(di.id) as item_count,
-                COALESCE(SUM(di.ordered_quantity), 0) as total_ordered_quantity,
-                COALESCE(SUM(di.picked_quantity), 0) as total_picked_quantity
+                COALESCE(SUM(di.ordered_quantity), 0) as total_ordered_quantity
             FROM deliveries d
             JOIN warehouses w ON d.warehouse_id = w.id
             JOIN locations l ON d.source_location_id = l.id
@@ -79,8 +78,7 @@ class DeliveriesService {
 
         const items = db.query(`
             SELECT 
-                di.id, di.ordered_quantity, di.picked_quantity, di.packed_quantity,
-                di.delivered_quantity, di.notes,
+                di.id, di.ordered_quantity, di.notes,
                 p.id as product_id, p.name as product_name, p.sku as product_sku,
                 u.symbol as uom_symbol,
                 COALESCE(b.quantity, 0) as current_available_stock
@@ -144,8 +142,8 @@ class DeliveriesService {
 
                 db.execute(`
                     INSERT INTO delivery_items 
-                    (id, delivery_id, product_id, ordered_quantity, picked_quantity, packed_quantity, delivered_quantity, notes)
-                    VALUES (?, ?, ?, ?, 0.0, 0.0, 0.0, ?)
+                    (id, delivery_id, product_id, ordered_quantity, notes)
+                    VALUES (?, ?, ?, ?, ?)
                 `, [crypto.randomUUID(), deliveryId, item.product_id, orderedQty, item.notes || '']);
             }
 
@@ -153,69 +151,38 @@ class DeliveriesService {
         });
     }
 
-    pickItems(orgId, deliveryId, pickData, userId) {
+    updateDeliveryStatus(orgId, deliveryId, status, userId) {
         const delivery = this.getDeliveryById(orgId, deliveryId);
         if (!delivery) throw new Error('Delivery not found');
-        if (delivery.status === 'DONE') throw new Error('Cannot pick items for completed delivery');
-        if (delivery.status === 'CANCELED') throw new Error('Cannot pick items for canceled delivery');
+        if (delivery.status === 'DONE') throw new Error('Cannot modify a completed delivery');
+        if (delivery.status === 'CANCELED') throw new Error('Cannot modify a canceled delivery');
 
-        return db.transaction(() => {
-            // Update picked quantities
-            if (Array.isArray(pickData)) {
-                for (const p of pickData) {
-                    db.execute(`
-                        UPDATE delivery_items
-                        SET picked_quantity = ?
-                        WHERE id = ? AND delivery_id = ?
-                    `, [parseFloat(p.picked_quantity) || 0, p.item_id, deliveryId]);
-                }
-            } else {
-                // Auto mark all ordered items as picked
-                db.execute(`
-                    UPDATE delivery_items
-                    SET picked_quantity = ordered_quantity
-                    WHERE delivery_id = ?
-                `, [deliveryId]);
-            }
+        const allowed = ['DRAFT', 'WAITING', 'READY'];
+        if (!allowed.includes(status)) {
+            throw new Error(`Invalid status update to ${status}. Use validate endpoint to dispatch.`);
+        }
 
-            db.execute(`UPDATE deliveries SET status = 'PICKING', updated_at = datetime('now') WHERE id = ?`, [deliveryId]);
-            return this.getDeliveryById(orgId, deliveryId);
-        });
-    }
+        const validTransitions = {
+            'DRAFT': ['WAITING'],
+            'WAITING': ['READY', 'DRAFT'],
+            'READY': ['WAITING']
+        };
 
-    packItems(orgId, deliveryId, packData, userId) {
-        const delivery = this.getDeliveryById(orgId, deliveryId);
-        if (!delivery) throw new Error('Delivery not found');
-        if (delivery.status === 'DONE' || delivery.status === 'CANCELED') throw new Error('Invalid delivery status for packing');
+        const current = delivery.status;
+        if (validTransitions[current] && !validTransitions[current].includes(status)) {
+            throw new Error(`Cannot transition from ${current} to ${status}`);
+        }
 
-        return db.transaction(() => {
-            if (Array.isArray(packData)) {
-                for (const p of packData) {
-                    db.execute(`
-                        UPDATE delivery_items
-                        SET packed_quantity = ?
-                        WHERE id = ? AND delivery_id = ?
-                    `, [parseFloat(p.packed_quantity) || 0, p.item_id, deliveryId]);
-                }
-            } else {
-                // Auto mark picked as packed
-                db.execute(`
-                    UPDATE delivery_items
-                    SET packed_quantity = CASE WHEN picked_quantity > 0 THEN picked_quantity ELSE ordered_quantity END
-                    WHERE delivery_id = ?
-                `, [deliveryId]);
-            }
-
-            db.execute(`UPDATE deliveries SET status = 'PACKED', updated_at = datetime('now') WHERE id = ?`, [deliveryId]);
-            return this.getDeliveryById(orgId, deliveryId);
-        });
+        db.execute(`UPDATE deliveries SET status = ?, updated_at = datetime('now') WHERE id = ?`, [status, deliveryId]);
+        return this.getDeliveryById(orgId, deliveryId);
     }
 
     validateDelivery(orgId, deliveryId, userId) {
         const delivery = this.getDeliveryById(orgId, deliveryId);
         if (!delivery) throw new Error('Delivery not found');
-        if (delivery.status === 'DONE') throw new Error('Delivery order is already validated');
-        if (delivery.status === 'CANCELED') throw new Error('Cannot validate a canceled delivery');
+        if (delivery.status === 'DONE') throw new Error('Delivery order is already dispatched');
+        if (delivery.status === 'CANCELED') throw new Error('Cannot dispatch a canceled delivery');
+        if (delivery.status !== 'READY') throw new Error('Delivery must be in READY status to dispatch. Move to READY first.');
         if (delivery.items.length === 0) throw new Error('Delivery has no items');
 
         // Check organization settings for negative stock policy
@@ -224,7 +191,7 @@ class DeliveriesService {
 
         return db.transaction(() => {
             for (const item of delivery.items) {
-                const qtyToDeduct = item.packed_quantity > 0 ? item.packed_quantity : (item.picked_quantity > 0 ? item.picked_quantity : item.ordered_quantity);
+                const qtyToDeduct = item.ordered_quantity;
 
                 // Fetch current stock at source location
                 const balance = db.getOne(`
@@ -256,9 +223,6 @@ class DeliveriesService {
                         VALUES (?, ?, ?, ?, ?, ?, 0.0, 1)
                     `, [balanceId, orgId, item.product_id, delivery.warehouse_id, delivery.location_id, newQty]);
                 }
-
-                // Update item delivered_quantity
-                db.execute(`UPDATE delivery_items SET delivered_quantity = ? WHERE id = ?`, [qtyToDeduct, item.id]);
 
                 // Record immutable stock ledger entry
                 const ledgerId = crypto.randomUUID();
@@ -308,10 +272,10 @@ class DeliveriesService {
             // Notification
             db.execute(`
                 INSERT INTO notifications (id, organization_id, user_id, title, message, type, related_entity_type, related_entity_id)
-                VALUES (?, ?, ?, 'Delivery Order Shipped', ?, 'DELIVERY_VALIDATED', 'delivery', ?)
+                VALUES (?, ?, ?, 'Delivery Order Dispatched', ?, 'DELIVERY_VALIDATED', 'delivery', ?)
             `, [
                 crypto.randomUUID(), orgId, userId,
-                `Delivery ${delivery.delivery_number} shipped successfully to ${delivery.customer_name}.`,
+                `Delivery ${delivery.delivery_number} dispatched successfully to ${delivery.customer_name}. Stock decremented.`,
                 delivery.id
             ]);
 

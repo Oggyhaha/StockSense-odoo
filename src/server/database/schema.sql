@@ -242,7 +242,7 @@ CREATE TABLE IF NOT EXISTS deliveries (
     shipped_date TEXT,
     reference_number TEXT,
     notes TEXT,
-    status TEXT NOT NULL DEFAULT 'DRAFT' CHECK(status IN ('DRAFT', 'WAITING', 'READY', 'PICKING', 'PACKED', 'DONE', 'CANCELED')),
+    status TEXT NOT NULL DEFAULT 'DRAFT' CHECK(status IN ('DRAFT', 'WAITING', 'READY', 'DONE', 'CANCELED')),
     created_by TEXT,
     updated_by TEXT,
     created_at TEXT DEFAULT (datetime('now')),
