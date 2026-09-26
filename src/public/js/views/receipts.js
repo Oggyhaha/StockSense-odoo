@@ -1,7 +1,8 @@
 /**
- * Receipts View (Incoming Stock from Vendors, Validation Workflow, and Atomic Stock Increases)
+ * Receipts View - List/Kanban with Draft->Ready->Done workflow
  */
 const ReceiptsView = {
+    viewMode: 'list', // 'list' or 'kanban'
     status: '',
     warehouseId: '',
     search: '',
@@ -10,7 +11,7 @@ const ReceiptsView = {
         container.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
                 <div>
-                    <h1 style="font-size:1.6rem; font-weight:800; margin-bottom:0.25rem;">Incoming Receipts</h1>
+                    <h1 style="font-size:1.6rem; font-weight:800; margin-bottom:0.25rem;">Receipts</h1>
                     <p style="font-size:0.85rem; color:var(--text-secondary);">Manage vendor shipments, receive quantities into warehouse locations, and validate into stock.</p>
                 </div>
 
@@ -35,11 +36,16 @@ const ReceiptsView = {
                         <select id="rec-status-select" class="form-control" style="width:160px;">
                             <option value="">All Statuses</option>
                             <option value="DRAFT">Draft</option>
-                            <option value="WAITING">Waiting</option>
                             <option value="READY">Ready</option>
-                            <option value="DONE">Done (Validated)</option>
+                            <option value="DONE">Done</option>
                             <option value="CANCELED">Canceled</option>
                         </select>
+
+                        <!-- View Toggle -->
+                        <div class="view-toggle" style="margin-left:auto;">
+                            <button class="view-btn ${this.viewMode === 'list' ? 'active' : ''}" data-view="list" title="List View">${Icons.list}</button>
+                            <button class="view-btn ${this.viewMode === 'kanban' ? 'active' : ''}" data-view="kanban" title="Kanban View">${Icons.kanban}</button>
+                        </div>
 
                         <button class="btn btn-secondary" id="rec-btn-refresh">
                             ${Icons.refresh}
@@ -48,24 +54,53 @@ const ReceiptsView = {
                 </div>
             </div>
 
-            <!-- Receipts Table -->
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Receipt Number</th>
-                            <th>Supplier / Vendor</th>
-                            <th>Destination Warehouse & Bay</th>
-                            <th>Status</th>
-                            <th>Total Units</th>
-                            <th>Received Date</th>
-                            <th style="text-align:right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="receipts-table-body">
-                        <tr><td colspan="7" style="text-align:center; padding:2rem;">Loading receipts...</td></tr>
-                    </tbody>
+            <!-- List View -->
+            <div id="rec-list-view" style="${this.viewMode === 'list' ? '' : 'display:none;'}">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Receipt #</th>
+                                <th>Supplier / Vendor</th>
+                                <th>Destination Warehouse & Bay</th>
+                                <th>Status</th>
+                                <th>Total Units</th>
+                                <th>Received Date</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receipts-table-body">
+                            <tr><td colspan="7" style="text-align:center; padding:2rem;">Loading receipts...</td></tr>
+                        </tbody>
+                    </table>
                 </table>
+            </div>
+
+            <!-- Kanban View -->
+            <div id="rec-kanban-view" style="${this.viewMode === 'kanban' ? '' : 'display:none;'}">
+                <div class="kanban-board" style="display:flex; gap:1rem; overflow-x:auto; padding:0.5rem 0;">
+                    <div class="kanban-column" data-status="DRAFT">
+                        <div class="kanban-column-header" style="background:var(--bg-surface-hover); border:1px solid var(--border-subtle); border-radius:var(--radius-md) var(--radius-md) 0 0; padding:0.75rem 1rem; font-weight:600; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+                            <span>Draft</span>
+                            <span class="badge badge-draft" id="kanban-count-draft">0</span>
+                        </div>
+                        <div class="kanban-cards" id="kanban-draft" style="min-height:300px; padding:0.5rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);"></div>
+                    </div>
+                    <div class="kanban-column" data-status="READY">
+                        <div class="kanban-column-header" style="background:var(--primary-light); border:1px solid var(--primary-border); border-radius:var(--radius-md) var(--radius-md) 0 0; padding:0.75rem 1rem; font-weight:600; color:var(--primary); display:flex; justify-content:space-between; align-items:center;">
+                            <span>Ready</span>
+                            <span class="badge badge-ready" id="kanban-count-ready">0</span>
+                        </div>
+                        <div class="kanban-cards" id="kanban-ready" style="min-height:300px; padding:0.5rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);"></div>
+                    </div>
+                    <div class="kanban-column" data-status="DONE">
+                        <div class="kanban-column-header" style="background:var(--success-light); border:1px solid var(--success-border); border-radius:var(--radius-md) var(--radius-md) 0 0; padding:0.75rem 1rem; font-weight:600; color:var(--success); display:flex; justify-content:space-between; align-items:center;">
+                            <span>Done</span>
+                            <span class="badge badge-done" id="kanban-count-done">0</span>
+                        </div>
+                        <div class="kanban-cards" id="kanban-done" style="min-height:300px; padding:0.5rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);"></div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -89,6 +124,14 @@ const ReceiptsView = {
             this.loadReceipts();
         };
 
+        // View toggle
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                this.viewMode = e.currentTarget.dataset.view;
+                this.renderReceiptsView();
+            };
+        });
+
         document.getElementById('rec-btn-refresh').onclick = () => this.loadReceipts();
         document.getElementById('btn-create-receipt').onclick = () => this.showCreateReceiptModal();
     },
@@ -110,7 +153,6 @@ const ReceiptsView = {
     },
 
     async loadReceipts() {
-        const tbody = document.getElementById('receipts-table-body');
         try {
             const res = await API.getReceipts({
                 search: this.search,
@@ -119,48 +161,229 @@ const ReceiptsView = {
                 limit: 100
             });
 
-            if (!res.items || res.items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2.5rem; color:var(--text-muted);">No receipts found matching your criteria.</td></tr>`;
-                return;
+            if (this.viewMode === 'list') {
+                this.renderListView(res.items || []);
+            } else {
+                this.renderKanbanView(res.items || []);
             }
-
-            tbody.innerHTML = res.items.map(r => {
-                const badgeClass = `badge-${r.status.toLowerCase()}`;
-                return `
-                    <tr style="cursor:pointer;" onclick="ReceiptsView.showReceiptDetailModal('${r.id}')">
-                        <td>
-                            <strong style="color:var(--primary-hover); font-family:var(--font-mono); font-size:0.95rem;">${r.receipt_number}</strong>
-                            ${r.reference_number ? `<div style="font-size:0.7rem; color:var(--text-muted);">Ref: ${r.reference_number}</div>` : ''}
-                        </td>
-                        <td>
-                            <div style="font-weight:600; color:var(--text-primary);">${r.supplier_name || 'Generic Vendor'}</div>
-                            <div style="font-size:0.7rem; color:var(--text-muted);">${r.item_count} line item(s)</div>
-                        </td>
-                        <td>
-                            <div style="font-weight:600; color:var(--text-primary);">${r.warehouse_name}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">${r.location_name}</div>
-                        </td>
-                        <td>
-                            <span class="badge ${badgeClass}"><span class="badge-dot"></span> ${r.status}</span>
-                        </td>
-                        <td>
-                            <strong style="font-size:1rem; color:white;">+${r.total_quantity}</strong>
-                        </td>
-                        <td style="font-size:0.8rem; color:var(--text-muted);">
-                            ${r.received_date ? new Date(r.received_date).toLocaleDateString() : (r.expected_date ? 'Exp: ' + new Date(r.expected_date).toLocaleDateString() : '-')}
-                        </td>
-                        <td style="text-align:right;" onclick="event.stopPropagation()">
-                            <button class="btn btn-secondary btn-sm" onclick="ReceiptsView.showReceiptDetailModal('${r.id}')">
-                                View / Process
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--danger);">Error loading receipts: ${err.message}</td></tr>`;
+            const container = this.viewMode === 'list' ? 
+                document.getElementById('receipts-table-body') : 
+                document.getElementById('kanban-draft');
+            container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--danger);">Error loading receipts: ${err.message}</div>`;
         }
     },
+
+    renderReceiptsView() {
+        const listView = document.getElementById('rec-list-view');
+        const kanbanView = document.getElementById('rec-kanban-view');
+        const listBtn = document.querySelector('.view-btn[data-view="list"]');
+        const kanbanBtn = document.querySelector('.view-btn[data-view="kanban"]');
+
+        if (this.viewMode === 'list') {
+            listView.style.display = '';
+            document.getElementById('rec-kanban-view').style.display = 'none';
+            listBtn.classList.add('active');
+            kanbanBtn.classList.remove('active');
+        } else {
+            listView.style.display = 'none';
+            document.getElementById('rec-kanban-view').style.display = '';
+            listBtn.classList.remove('active');
+            kanbanBtn.classList.add('active');
+            this.loadReceipts(); // Re-render kanban
+        }
+    },
+
+    renderListView(items = []) {
+        const tbody = document.getElementById('receipts-table-body');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2.5rem; color:var(--text-muted);">No receipts found matching your criteria.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = items.map(r => {
+            const badgeClass = `badge-${r.status.toLowerCase()}`;
+            return `
+                <tr style="cursor:pointer;" onclick="ReceiptsView.showReceiptDetailModal('${r.id}')">
+                    <td>
+                        <strong style="color:var(--primary-hover); font-family:var(--font-mono); font-size:0.95rem;">${r.receipt_number}</strong>
+                        ${r.reference_number ? `<div style="font-size:0.7rem; color:var(--text-muted);">Ref: ${r.reference_number}</div>` : ''}
+                    </td>
+                    <td>
+                        <div style="font-weight:600; color:var(--text-primary);">${r.supplier_name || 'Generic Vendor'}</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">${r.item_count} line item(s)</div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600; color:var(--text-primary);">${r.warehouse_name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">${r.location_name}</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-${r.status.toLowerCase()}"><span class="badge-dot"></span> ${r.status}</span>
+                    </td>
+                    <td>
+                        <strong style="font-size:1rem; color:white;">+${r.total_quantity}</strong>
+                    </td>
+                    <td style="font-size:0.8rem; color:var(--text-muted);">
+                        ${r.received_date ? new Date(r.received_date).toLocaleDateString() : (r.expected_date ? 'Exp: ' + new Date(r.expected_date).toLocaleDateString() : '-')}
+                    </td>
+                    <td style="text-align:right;" onclick="event.stopPropagation()">
+                        <button class="btn btn-secondary btn-sm" onclick="ReceiptsView.showReceiptDetailModal('${r.id}')">
+                            View / Process
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    renderKanbanView(items = []) {
+        const columns = {
+            DRAFT: document.getElementById('kanban-draft'),
+            READY: document.getElementById('kanban-ready'),
+            DONE: document.getElementById('kanban-done')
+        };
+
+        // Clear columns
+        Object.values(columns).forEach(col => col.innerHTML = '');
+
+        // Count badges
+        const counts = { DRAFT: 0, READY: 0, DONE: 0 };
+
+        if (!items || items.length === 0) {
+            Object.values(columns).forEach(col => {
+                col.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem;">No receipts</div>';
+            });
+            document.getElementById('kanban-count-draft').textContent = 0;
+            document.getElementById('kanban-count-ready').textContent = 0;
+            document.getElementById('kanban-count-done').textContent = 0;
+            return;
+        }
+
+        items.forEach(r => {
+            const status = r.status;
+            if (columns[status]) {
+                counts[status]++;
+                const card = document.createElement('div');
+                card.className = 'kanban-card';
+                card.style.cssText = 'background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1rem; margin-bottom:0.5rem; cursor:pointer; transition:transform var(--transition-fast), box-shadow var(--transition-fast);';
+                card.onmouseover = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = 'var(--shadow-md)'; };
+                card.onmouseout = () => { card.style.transform = ''; card.style.boxShadow = ''; };
+                card.onclick = () => ReceiptsView.showReceiptDetailModal(r.id);
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+                        <strong style="color:var(--primary-hover); font-family:var(--font-mono); font-size:0.9rem;">${r.receipt_number}</strong>
+                        <span class="badge badge-${r.status.toLowerCase()}">${r.status}</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.5rem;">${r.supplier_name || 'Generic Vendor'}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${r.warehouse_name} / ${r.location_name}</div>
+                    <div style="margin-top:0.75rem; padding-top:0.5rem; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${r.item_count} items</span>
+                        <strong style="color:var(--success);">+${r.total_quantity}</strong>
+                    </div>
+                `;
+                columns[status].appendChild(card);
+            });
+
+            // Update count badges
+            document.getElementById('kanban-count-draft').textContent = counts.DRAFT;
+            document.getElementById('kanban-count-ready').textContent = counts.READY;
+            document.getElementById('kanban-count-done').textContent = counts.DONE;
+
+            // Empty columns
+            ['DRAFT', 'READY', 'DONE'].forEach(s => {
+                if (counts[s] === 0) {
+                    document.getElementById(`kanban-${s.toLowerCase()}`).innerHTML = 
+                        '<div style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem;">No receipts</div>';
+                }
+            });
+        }
+    },
+
+    async loadWarehousesFilter() {
+        try {
+            const warehouses = await API.getWarehouses();
+            const select = document.getElementById('rec-wh-select');
+            warehouses.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.id;
+                opt.textContent = w.name;
+                if (w.id === this.warehouseId) opt.selected = true;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.error('Failed to load warehouses for receipt filter:', e);
+        }
+    },
+
+    async loadReceipts() {
+        try {
+            const res = await API.getReceipts({
+                search: this.search,
+                warehouseId: this.warehouseId,
+                status: this.status,
+                limit: 100
+            });
+
+            if (this.viewMode === 'list') {
+                this.renderListView(res.items || []);
+            } else {
+                this.renderKanbanView(res.items || []);
+            }
+        } catch (err) {
+            if (this.viewMode === 'list') {
+                document.getElementById('receipts-table-body').innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--danger);">Error loading receipts: ${err.message}</td></tr>`;
+            }
+        }
+    },
+
+    renderListView(items = []) {
+        const tbody = document.getElementById('receipts-table-body');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2.5rem; color:var(--text-muted);">No receipts found matching your criteria.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = items.map(r => {
+            const badgeClass = `badge-${r.status.toLowerCase()}`;
+            return `
+                <tr style="cursor:pointer;" onclick="ReceiptsView.showReceiptDetailModal('${r.id}')">
+                    <td>
+                        <strong style="color:var(--primary-hover); font-family:var(--font-mono); font-size:0.95rem;">${r.receipt_number}</strong>
+                        ${r.reference_number ? `<div style="font-size:0.7rem; color:var(--text-muted);">Ref: ${r.reference_number}</div>` : ''}
+                    </td>
+                    <td>
+                        <div style="font-weight:600; color:var(--text-primary);">${r.supplier_name || 'Generic Vendor'}</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">${r.item_count} line item(s)</div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600; color:var(--text-primary);">${r.warehouse_name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">${r.location_name}</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-${r.status.toLowerCase()}"><span class="badge-dot"></span> ${r.status}</span>
+                    </td>
+                    <td>
+                        <strong style="font-size:1rem; color:white;">+${r.total_quantity}</strong>
+                    </td>
+                    <td style="font-size:0.8rem; color:var(--text-muted);">
+                        ${r.received_date ? new Date(r.received_date).toLocaleDateString() : (r.expected_date ? 'Exp: ' + new Date(r.expected_date).toLocaleDateString() : '-')}
+                    </td>
+                    <td style="text-align:right;" onclick="event.stopPropagation()">
+                        <button class="btn btn-secondary btn-sm" onclick="ReceiptsView.showReceiptDetailModal('${r.id}')">
+                            View / Process
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    // ... rest of the methods (showReceiptDetailModal, showCreateReceiptModal, etc.)
+    // Keep the existing showReceiptDetailModal and showCreateReceiptModal methods
+    // but update the workflow to: Draft -> Ready -> Done (no WAITING)
+    // In showReceiptDetailModal, update the stepper to show: Draft -> Ready -> Done
+    // In showCreateReceiptModal, the reference number should be auto-generated as WH/IN/0001
 
     async showReceiptDetailModal(receiptId) {
         try {
@@ -169,29 +392,24 @@ const ReceiptsView = {
             const isCanceled = r.status === 'CANCELED';
 
             Modal.open({
-                title: `Receipt Details: ${r.receipt_number}`,
+                title: `Receipt: ${r.receipt_number}`,
                 size: 'lg',
                 content: `
-                    <!-- Stepper Bar -->
+                    <!-- Workflow Stepper: Draft -> Ready -> Done -->
                     <div class="workflow-stepper">
-                        <div class="step-item ${['DRAFT', 'WAITING', 'READY', 'DONE'].includes(r.status) ? 'active' : ''} ${isDone ? 'completed' : ''}">
+                        <div class="step-item ${['DRAFT', 'READY', 'DONE'].includes(r.status) ? 'active' : ''} ${['READY', 'DONE'].includes(r.status) ? 'completed' : ''}">
                             <div class="step-circle">1</div>
                             <span>Draft</span>
                         </div>
                         <div style="flex:1; height:2px; background:var(--border-subtle); margin:0 0.5rem;"></div>
-                        <div class="step-item ${['WAITING', 'READY', 'DONE'].includes(r.status) ? 'active' : ''} ${isDone ? 'completed' : ''}">
-                            <div class="step-circle">2</div>
-                            <span>Awaiting Delivery</span>
-                        </div>
-                        <div style="flex:1; height:2px; background:var(--border-subtle); margin:0 0.5rem;"></div>
                         <div class="step-item ${['READY', 'DONE'].includes(r.status) ? 'active' : ''} ${isDone ? 'completed' : ''}">
-                            <div class="step-circle">3</div>
-                            <span>Ready to Shelve</span>
+                            <div class="step-circle">2</div>
+                            <span>Ready</span>
                         </div>
                         <div style="flex:1; height:2px; background:var(--border-subtle); margin:0 0.5rem;"></div>
                         <div class="step-item ${isDone ? 'completed' : ''}">
-                            <div class="step-circle">4</div>
-                            <span>Validated (Done)</span>
+                            <div class="step-circle">3</div>
+                            <span>Done</span>
                         </div>
                     </div>
 
@@ -254,10 +472,8 @@ const ReceiptsView = {
                     <button class="btn btn-secondary" onclick="Modal.close()">Close</button>
                     ${!isDone && !isCanceled ? `
                         <button class="btn btn-danger" id="btn-cancel-rec">Cancel Receipt</button>
-                        ${r.status === 'DRAFT' ? `<button class="btn btn-secondary" id="btn-ready-rec">Mark as Ready</button>` : ''}
-                        <button class="btn btn-success" id="btn-validate-rec">
-                            ${Icons.check} Validate Receipt (Stock +)
-                        </button>
+                        ${r.status === 'DRAFT' ? `<button class="btn btn-primary" id="btn-to-ready">To Do → Ready</button>` : ''}
+                        ${r.status === 'READY' ? `<button class="btn btn-success" id="btn-validate-rec">${Icons.check} Validate (Stock +)</button>` : ''}
                     ` : ''}
                 `,
                 onOpen: () => {
@@ -276,14 +492,14 @@ const ReceiptsView = {
                             } catch (err) {
                                 Toast.error(err.message);
                                 btnValidate.disabled = false;
-                                btnValidate.innerHTML = 'Validate Receipt (Stock +)';
+                                btnValidate.innerHTML = 'Validate (Stock +)';
                             }
                         };
                     }
 
-                    const btnReady = document.getElementById('btn-ready-rec');
-                    if (btnReady) {
-                        btnReady.onclick = async () => {
+                    const btnToReady = document.getElementById('btn-to-ready');
+                    if (btnToReady) {
+                        btnToReady.onclick = async () => {
                             try {
                                 await API.updateReceiptStatus(r.id, 'READY');
                                 Toast.success(`Receipt ${r.receipt_number} marked as READY`);
@@ -324,7 +540,7 @@ const ReceiptsView = {
             ]);
 
             Modal.open({
-                title: 'Create Incoming Receipt Document',
+                title: 'Create Incoming Receipt',
                 size: 'lg',
                 content: `
                     <form id="form-create-receipt">
@@ -334,7 +550,7 @@ const ReceiptsView = {
                                 <input type="text" id="cr-supplier" class="form-control" placeholder="e.g. Apex Industrial Supplies Ltd." required>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">PO / Reference #</label>
+                                <label class="form-label">PO / Reference # (Optional)</label>
                                 <input type="text" id="cr-ref" class="form-control" placeholder="e.g. PO-98120">
                             </div>
                         </div>
@@ -354,7 +570,7 @@ const ReceiptsView = {
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Expected Date</label>
-                                <input type="date" id="cr-date" class="form-control">
+                                <input type="date" id="cr-date" class="form-control" value="${new Date().toISOString().split('T')[0]}">
                             </div>
                         </div>
 
@@ -381,7 +597,6 @@ const ReceiptsView = {
                                     </tr>
                                 </thead>
                                 <tbody id="receipt-items-tbody">
-                                    <!-- Dynamic Rows -->
                                 </tbody>
                             </table>
                         </div>
@@ -389,7 +604,7 @@ const ReceiptsView = {
                 `,
                 footer: `
                     <button class="btn btn-secondary" onclick="Modal.close()">Cancel</button>
-                    <button class="btn btn-primary" id="btn-submit-receipt">Save Draft Receipt</button>
+                    <button class="btn btn-primary" id="btn-submit-receipt">Create Draft Receipt</button>
                 `,
                 onOpen: async () => {
                     const whSelect = document.getElementById('cr-wh');

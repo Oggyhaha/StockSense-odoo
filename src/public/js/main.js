@@ -6,15 +6,12 @@ const App = {
     routes: {
         '#auth': { view: 'AuthView', render: 'render', requiresAuth: false },
         '#dashboard': { view: 'DashboardView', render: 'render', requiresAuth: true },
+        '#operations/receipts': { view: 'ReceiptsView', render: 'render', requiresAuth: true },
+        '#operations/deliveries': { view: 'DeliveriesView', render: 'render', requiresAuth: true },
         '#products': { view: 'ProductsView', render: 'render', requiresAuth: true },
-        '#receipts': { view: 'ReceiptsView', render: 'render', requiresAuth: true },
-        '#deliveries': { view: 'DeliveriesView', render: 'render', requiresAuth: true },
-        '#transfers': { view: 'TransfersView', render: 'render', requiresAuth: true },
-        '#adjustments': { view: 'AdjustmentsView', render: 'render', requiresAuth: true },
-        '#inventory': { view: 'InventoryView', render: 'render', requiresAuth: true },
-        '#notifications': { view: 'NotificationsView', render: 'render', requiresAuth: true },
-        '#settings': { view: 'SettingsView', render: 'render', requiresAuth: true },
-        '#warehouses': { view: 'WarehousesView', render: 'render', requiresAuth: true }
+        '#stock': { view: 'StockView', render: 'render', requiresAuth: true },
+        '#move-history': { view: 'MoveHistoryView', render: 'render', requiresAuth: true },
+        '#settings': { view: 'SettingsView', render: 'render', requiresAuth: true }
     },
 
     currentView: null,
@@ -121,36 +118,29 @@ const App = {
                     <div class="brand-logo-container" onclick="window.location.hash='#dashboard'">
                         <div class="brand-icon-svg">${Icons.logo}</div>
                         <span class="brand-title">StockSense</span>
-                        <span class="brand-badge">IMS</span>
                     </div>
                 </div>
 
                 <nav class="sidebar-nav" id="sidebar-nav">
-                    <div class="nav-group-title">Operations</div>
+                    <div class="nav-group-title">Main</div>
                     <div class="nav-group-items">
                         <a class="nav-link" href="#dashboard" data-route="#dashboard">
                             <span class="nav-link-icon">${Icons.dashboard}</span>
                             <span>Dashboard</span>
                         </a>
-                        <a class="nav-link" href="#receipts" data-route="#receipts">
+                    </div>
+
+                    <div class="nav-group-title">Operations</div>
+                    <div class="nav-group-items">
+                        <a class="nav-link" href="#operations/receipts" data-route="#operations/receipts">
                             <span class="nav-link-icon">${Icons.receipts}</span>
                             <span>Receipts</span>
                             <span class="nav-link-badge" id="nav-badge-receipts" style="display:none;">0</span>
                         </a>
-                        <a class="nav-link" href="#deliveries" data-route="#deliveries">
+                        <a class="nav-link" href="#operations/deliveries" data-route="#operations/deliveries">
                             <span class="nav-link-icon">${Icons.deliveries}</span>
                             <span>Deliveries</span>
                             <span class="nav-link-badge" id="nav-badge-deliveries" style="display:none;">0</span>
-                        </a>
-                        <a class="nav-link" href="#transfers" data-route="#transfers">
-                            <span class="nav-link-icon">${Icons.transfers}</span>
-                            <span>Transfers</span>
-                            <span class="nav-link-badge" id="nav-badge-transfers" style="display:none;">0</span>
-                        </a>
-                        <a class="nav-link" href="#adjustments" data-route="#adjustments">
-                            <span class="nav-link-icon">${Icons.adjustments}</span>
-                            <span>Adjustments</span>
-                            <span class="nav-link-badge" id="nav-badge-adjustments" style="display:none;">0</span>
                         </a>
                     </div>
 
@@ -160,22 +150,17 @@ const App = {
                             <span class="nav-link-icon">${Icons.products}</span>
                             <span>Products</span>
                         </a>
-                        <a class="nav-link" href="#warehouses" data-route="#warehouses">
+                        <a class="nav-link" href="#stock" data-route="#stock">
                             <span class="nav-link-icon">${Icons.warehouses}</span>
-                            <span>Warehouses</span>
+                            <span>Stock</span>
                         </a>
                     </div>
 
                     <div class="nav-group-title">Insights</div>
                     <div class="nav-group-items">
-                        <a class="nav-link" href="#inventory" data-route="#inventory">
+                        <a class="nav-link" href="#move-history" data-route="#move-history">
                             <span class="nav-link-icon">${Icons.ledger}</span>
-                            <span>Stock Ledger</span>
-                        </a>
-                        <a class="nav-link" href="#notifications" data-route="#notifications">
-                            <span class="nav-link-icon">${Icons.notifications}</span>
-                            <span>Notifications</span>
-                            <span class="nav-link-badge" id="nav-badge-notifs" style="display:none;">0</span>
+                            <span>Move History</span>
                         </a>
                     </div>
 
@@ -184,10 +169,6 @@ const App = {
                         <a class="nav-link" href="#settings" data-route="#settings">
                             <span class="nav-link-icon">${Icons.settings}</span>
                             <span>Settings</span>
-                        </a>
-                        <a class="nav-link" href="#audit" data-route="#audit">
-                            <span class="nav-link-icon">${Icons.auditLogs}</span>
-                            <span>Audit Logs</span>
                         </a>
                     </div>
                 </nav>
@@ -279,15 +260,12 @@ const App = {
     updateTopbarTitle(routeKey) {
         const titles = {
             '#dashboard': 'Dashboard',
-            '#products': 'Products & Catalog',
-            '#receipts': 'Incoming Receipts',
-            '#deliveries': 'Delivery Orders',
-            '#transfers': 'Internal Transfers',
-            '#adjustments': 'Stock Adjustments',
-            '#inventory': 'Stock Ledger',
-            '#notifications': 'Notifications',
-            '#settings': 'Settings',
-            '#warehouses': 'Warehouses & Locations'
+            '#operations/receipts': 'Receipts',
+            '#operations/deliveries': 'Deliveries',
+            '#products': 'Products',
+            '#stock': 'Stock',
+            '#move-history': 'Move History',
+            '#settings': 'Settings'
         };
         const title = titles[routeKey] || 'StockSense';
         document.getElementById('topbar-page-title').textContent = title;

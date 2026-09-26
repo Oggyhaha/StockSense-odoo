@@ -20,8 +20,8 @@ html, body {
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 }
 ::-webkit-scrollbar-track {
     background: var(--bg-base);
@@ -37,16 +37,18 @@ html, body {
 /* Typography Defaults */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-primary);
     letter-spacing: -0.02em;
-    line-height: 1.25;
+    line-height: 1.3;
 }
 
 h1 { font-size: 1.75rem; }
-h2 { font-size: 1.35rem; }
-h3 { font-size: 1.15rem; }
-h4 { font-size: 1.0rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.1rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.9rem; }
 
 p {
     color: var(--text-secondary);
@@ -63,6 +65,15 @@ a:hover {
 
 code, kbd, samp, pre {
     font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--bg-surface-hover);
+    padding: 0.2em 0.4em;
+    border-radius: var(--radius-sm);
+}
+
+pre {
+    padding: 1rem;
+    overflow-x: auto;
 }
 
 button, input, select, textarea {
@@ -80,6 +91,25 @@ button {
 
 /* Selection */
 ::selection {
-    background: var(--primary);
-    color: #ffffff;
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Utility classes */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
