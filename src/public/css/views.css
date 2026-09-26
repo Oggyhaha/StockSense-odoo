@@ -1,38 +1,47 @@
-/* StockSense View Specific Layouts & Aesthetics - Light Theme */
+/* StockSense View Specific Layouts & Aesthetics - Professional Light Theme */
 
-/* Auth View */
+/* ===========================================
+   AUTH VIEW - Clean, Professional
+=========================================== */
 .auth-wrapper {
     display: flex;
     min-height: 100vh;
     width: 100vw;
-    background: var(--bg-base);
+    background: #fafafa;
 }
 
 .auth-hero-side {
-    flex: 1.1;
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 3.5rem;
-    border-right: 1px solid var(--border-subtle);
-    position: relative;
-    overflow: hidden;
+    display: none; /* Hidden on mobile, shown on desktop */
 }
 
-.auth-hero-side::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
-    opacity: 0.5;
+@media (min-width: 900px) {
+    .auth-hero-side {
+        display: flex;
+        flex: 1.1;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 3.5rem;
+        background: #ffffff;
+        border-right: 1px solid var(--border-subtle);
+        position: relative;
+        overflow: hidden;
+    }
+    .auth-hero-side::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
+        opacity: 0.3;
+        z-index: 0;
+    }
+    .auth-hero-side > * { position: relative; z-index: 1; }
 }
 
 .auth-form-side {
-    flex: 0.9;
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -41,21 +50,27 @@
     overflow-y: auto;
 }
 
+@media (min-width: 900px) {
+    .auth-form-side {
+        flex: 0.9;
+    }
+}
+
 .auth-card {
     width: 100%;
-    max-width: 440px;
-    background: var(--bg-surface);
+    max-width: 420px;
+    background: #ffffff;
     border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
-    padding: 2.25rem;
+    padding: 2.5rem;
 }
 
 .auth-title {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
     color: var(--text-primary);
+    margin-bottom: 0.5rem;
 }
 
 .auth-subtitle {
@@ -64,19 +79,20 @@
     margin-bottom: 1.75rem;
 }
 
+/* Demo Credentials Box - Clean */
 .demo-credentials-box {
     margin-top: 1.75rem;
-    padding: 1.125rem;
-    background: var(--primary-light);
-    border: 1px dashed var(--primary-border);
+    padding: 1.25rem;
+    background: #fafafa;
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
 }
 
 .demo-title {
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.7rem;
+    font-weight: 600;
     text-transform: uppercase;
-    color: var(--primary);
+    color: var(--text-muted);
     letter-spacing: 0.05em;
     margin-bottom: 0.75rem;
     display: flex;
@@ -91,23 +107,99 @@
 }
 
 .demo-btn {
-    padding: 0.625rem 0.75rem;
+    padding: 0.75rem 1rem;
     font-size: 0.8125rem;
-    font-weight: 600;
-    background: var(--bg-surface);
+    font-weight: 500;
+    background: #ffffff;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    color: var(--text-primary);
+    color: var(--text-secondary);
     text-align: left;
     transition: all var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 .demo-btn:hover {
     background: var(--primary);
     border-color: var(--primary);
     color: #ffffff;
 }
+.demo-btn:hover div { color: inherit !important; }
+.demo-btn div { color: var(--text-primary); }
 
-/* Dashboard Views */
+/* Auth Hero Side Content */
+.auth-hero-side > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.auth-hero-side .brand-icon-svg {
+    width: 48px;
+    height: 48px;
+}
+
+.auth-hero-side h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.auth-hero-side .brand-badge {
+    font-size: 0.65rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-full);
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid var(--primary-border);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.auth-hero-side > div:last-child h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.auth-hero-side > div:last-child p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    max-width: 480px;
+    color: var(--text-secondary);
+}
+
+.auth-hero-side > div:last-child > div:last-child {
+    display: flex;
+    gap: 2rem;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+}
+
+.auth-hero-side > div:last-child > div:last-child > div {
+    flex: 1;
+}
+
+.auth-hero-side > div:last-child > div:last-child > div > div:first-child {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.auth-hero-side > div:last-child > div:last-child > div > div:last-child {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ===========================================
+   DASHBOARD - Clean, Professional
+=========================================== */
 .dashboard-charts-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -131,16 +223,16 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
-    background: var(--bg-surface);
+    padding: 0.875rem 1rem;
+    background: #ffffff;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    transition: transform var(--transition-fast), border-color var(--transition-fast);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .activity-item:hover {
-    transform: translateX(4px);
     border-color: var(--border-strong);
+    box-shadow: var(--shadow-xs);
 }
 
 .activity-info {
@@ -150,8 +242,8 @@
 }
 
 .activity-icon-badge {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
@@ -165,7 +257,9 @@
 .activity-badge-transfer { background: var(--warning-light); color: var(--warning); }
 .activity-badge-adj { background: var(--info-light); color: var(--info); }
 
-/* Operations Workflow Stepper */
+/* ===========================================
+   OPERATIONS WORKFLOW STEPPER
+=========================================== */
 .workflow-stepper {
     display: flex;
     align-items: center;
@@ -174,47 +268,64 @@
     position: relative;
 }
 
+.workflow-stepper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    right: 24px;
+    height: 2px;
+    background: var(--border-subtle);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
 .step-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-muted);
+    position: relative;
+    z-index: 1;
+    flex: 1;
 }
 
-.step-item.active {
-    color: var(--primary);
-}
-.step-item.completed {
-    color: var(--success);
-}
+.step-item.active { color: var(--primary); }
+.step-item.completed { color: var(--success); }
 
 .step-circle {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-surface);
+    background: #ffffff;
     border: 2px solid var(--border-subtle);
     font-size: 0.8125rem;
     color: var(--text-muted);
     transition: all var(--transition-fast);
+    z-index: 1;
 }
+
 .step-item.active .step-circle {
     background: var(--primary);
     color: white;
     border-color: var(--primary);
 }
+
 .step-item.completed .step-circle {
     background: var(--success);
     color: white;
     border-color: var(--success);
 }
 
-/* Difference indicator in Stock Adjustments */
+/* ===========================================
+   DIFF TAG
+=========================================== */
 .diff-tag {
     font-weight: 600;
     font-size: 0.8125rem;
@@ -223,18 +334,9 @@
     display: inline-flex;
     align-items: center;
 }
-.diff-tag-positive {
-    background: var(--success-light);
-    color: var(--success);
-}
-.diff-tag-negative {
-    background: var(--danger-light);
-    color: var(--danger);
-}
-.diff-tag-zero {
-    background: var(--bg-surface-hover);
-    color: var(--text-muted);
-}
+.diff-tag-positive { background: var(--success-light); color: var(--success); }
+.diff-tag-negative { background: var(--danger-light); color: var(--danger); }
+.diff-tag-zero { background: var(--bg-surface-hover); color: var(--text-muted); }
 
 /* Line items table editor in modals */
 .line-items-table {
@@ -247,14 +349,12 @@
     color: var(--text-muted);
     text-transform: uppercase;
 }
-.line-items-table td {
-    padding: 0.5rem 0.75rem;
-}
+.line-items-table td { padding: 0.5rem 0.75rem; }
 
 /* Tree view for Warehouses & Locations */
 .tree-node {
     margin-bottom: 0.75rem;
-    background: var(--bg-surface);
+    background: #ffffff;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     padding: 1rem;
@@ -269,7 +369,7 @@
 }
 .location-pill {
     padding: 0.625rem 0.875rem;
-    background: var(--bg-surface);
+    background: #ffffff;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     display: flex;
@@ -284,7 +384,6 @@
     gap: 1.5rem;
     margin-bottom: 1.5rem;
 }
-
 @media (min-width: 900px) {
     .dashboard-bottom-grid {
         grid-template-columns: 1fr 1.5fr;
@@ -293,10 +392,6 @@
 
 /* Responsive */
 @media (max-width: 900px) {
-    .auth-hero-side {
-        display: none;
-    }
-    .auth-form-side {
-        flex: 1;
-    }
+    .auth-hero-side { display: none; }
+    .auth-form-side { flex: 1; }
 }
